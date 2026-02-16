@@ -102,3 +102,18 @@ export function getCountryByCode(code: string): CountryInfo | undefined {
 export function getFlag(code: string): string {
   return getCountryByCode(code)?.flag || "🏳️";
 }
+
+const NORMALIZE_REGEX = /[\s\u0300-\u036f]/g;
+
+export function filterCountries(query: string): CountryInfo[] {
+  if (!query.trim()) return COUNTRIES;
+  const normalized = query
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(NORMALIZE_REGEX, "");
+  return COUNTRIES.filter((c) => {
+    const nameNorm = c.name.normalize("NFD").replace(NORMALIZE_REGEX, "").toLowerCase();
+    const codeNorm = c.code.toLowerCase();
+    return nameNorm.includes(normalized) || codeNorm.includes(normalized);
+  });
+}

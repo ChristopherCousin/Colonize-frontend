@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
+import CountrySearchSelect from "@/components/ui/CountrySearchSelect";
 import Button from "@/components/ui/Button";
 import PhotoUpload from "@/components/ui/PhotoUpload";
 import { COUNTRIES } from "@/lib/countries";
@@ -38,11 +39,6 @@ const ratingOptions = [
   { value: "4", label: "🔥🔥🔥🔥" },
   { value: "5", label: "🔥🔥🔥🔥🔥" },
 ];
-
-const countryOptions = COUNTRIES.map((c) => ({
-  value: c.code,
-  label: `${c.flag} ${c.name}`,
-}));
 
 export default function AddEncounterModal({
   isOpen,
@@ -114,7 +110,7 @@ export default function AddEncounterModal({
         <PhotoUpload value={photoUrl} onChange={setPhotoUrl} />
         <Input
           label="Nombre / Apodo"
-          placeholder="¿Cómo le llamas?"
+          placeholder="¿Cómo se llama?"
           value={form.nickname}
           onChange={(e) => update("nickname", e.target.value)}
           required
@@ -125,11 +121,10 @@ export default function AddEncounterModal({
           value={form.gender}
           onChange={(e) => update("gender", e.target.value)}
         />
-        <Select
+        <CountrySearchSelect
           label="País de origen"
-          options={countryOptions}
           value={form.country_code}
-          onChange={(e) => update("country_code", e.target.value)}
+          onChange={(code) => update("country_code", code)}
         />
         <Input
           label="Ciudad (opcional)"
