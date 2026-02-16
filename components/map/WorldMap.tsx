@@ -14,6 +14,8 @@ import type { CountryStats, Encounter } from "@/types";
 import { NUM_TO_ALPHA2 } from "@/lib/countryMapping";
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 8;
 
 interface WorldMapProps {
   conqueredCountries: CountryStats[];
@@ -46,9 +48,23 @@ function WorldMap({ conqueredCountries, encounters, onCountryClick }: WorldMapPr
     conqueredCountries.map((c) => [c.country_code, c])
   );
 
-  const handleZoomIn = useCallback(() => setZoom((z) => Math.min(z * 1.5, 8)), []);
-  const handleZoomOut = useCallback(() => setZoom((z) => Math.max(z / 1.5, 1)), []);
+  const handleZoomIn = useCallback(() => setZoom((z) => Math.min(z * 1.5, MAX_ZOOM)), []);
+  const handleZoomOut = useCallback(() => setZoom((z) => Math.max(z / 1.5, MIN_ZOOM)), []);
   const handleReset = useCallback(() => { setZoom(1); setCenter([0, 20]); }, []);
+
+  const filterZoomEvent = useCallback((event: { type?: string; ctrlKey?: boolean; button?: number }) => {
+    if (event?.type === "wheel") {
+      return Boolean(event.ctrlKey);
+    }
+    return !event?.button;
+  }, []);
+
+  const handleWheelCapture = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
+    if (event.ctrlKey) {
+      // Block browser zoom while preserving map zoom behavior.
+      event.preventDefault();
+    }
+  }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!mapRef.current) return;
@@ -61,6 +77,7 @@ function WorldMap({ conqueredCountries, encounters, onCountryClick }: WorldMapPr
       ref={mapRef}
       className="relative w-full rounded-2xl overflow-hidden glass border border-white/5"
       onMouseMove={handleMouseMove}
+      onWheelCapture={handleWheelCapture}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-neon-purple/5 via-transparent to-neon-pink/5 pointer-events-none z-0" />
 
@@ -76,12 +93,13 @@ function WorldMap({ conqueredCountries, encounters, onCountryClick }: WorldMapPr
         <ZoomableGroup
           zoom={zoom}
           center={center}
+          filterZoomEvent={filterZoomEvent}
           onMoveEnd={({ coordinates, zoom: z }) => {
             setCenter(coordinates as [number, number]);
             setZoom(z);
           }}
-          minZoom={1}
-          maxZoom={8}
+          minZoom={MIN_ZOOM}
+          maxZoom={MAX_ZOOM}
         >
           <Geographies geography={GEO_URL}>
             {({ geographies }) =>
